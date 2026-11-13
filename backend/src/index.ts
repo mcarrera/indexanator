@@ -1,4 +1,8 @@
 import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT ?? 3000);
 const SHEET_ID = process.env.SHEET_ID ?? "";
@@ -83,6 +87,16 @@ app.get("/api/quotes", (_req, res) => {
 app.get("/healthz", (_req, res) => {
   res.json({ hasData: snapshot !== null, rows: snapshot?.rows.length ?? 0, lastError });
 });
+
+// --- static frontend 
+const FRONTEND_DIR = path.join(__dirname, "..", "public");
+
+app.use(express.static(FRONTEND_DIR));
+
+app.get(/^\/(?!api\/).*/, (_req, res) => {
+  res.sendFile(path.join(FRONTEND_DIR, "index.html"));
+});
+// --- end static frontend 
 
 app.listen(PORT, () => {
   console.log(`Backend on :${PORT} — polling "${SHEET_RANGE}" every ${POLL_MS / 60_000} min`);

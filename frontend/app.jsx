@@ -1,6 +1,6 @@
 const { useState, useMemo, useEffect } = React;
 
-const REFRESH_MS = 5 * 60 * 1000; // refresh every 5 minutes
+const REFRESH_MS = 2 * 60 * 1000; // refresh every 2 minutes
 
 const fmtCap = n => {
     if (n == null) return "—";
@@ -70,14 +70,14 @@ function App() {
     if (error && !data) return <p style={{ color: "#b71c1c" }}>Failed to load data: {error}</p>;
     if (!data) return <p>Loading…</p>;
 
-    const asOfStr = asOf ? new Date(asOf).toLocaleTimeString() : "";
+    const asOfStr = asOf ? new Date(asOf).toISOString().slice(11, 19) + " UTC" : "";
     const stale = asOf && (Date.now() - new Date(asOf).getTime() > 3 * 60 * 60 * 1000);
 
     return (
         <div className="wrap">
             <div className="page-head">
-                <h1>Indexator — S&amp;P Snapshot</h1>
-                <div className="sub">Quotes delayed — informational only, not for trading purposes.</div>
+                <h1>Indexator: S&amp;P500 Snapshot</h1>
+                <div className="sub">Quotes are delayed and might be innacurate. This site is for general information only - nothing here is investment advice or a recommendation to buy or sell any security. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
             </div>
 
             <div className={"badge " + (degraded || stale ? "degraded" : "")}>
@@ -128,7 +128,7 @@ function App() {
                 Source: Google Sheet → Sheets API → cached snapshot. {rows.length} of {data.length} rows shown.
             </div>
         </div>
-    ); ß
+    );
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);

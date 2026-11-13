@@ -1,19 +1,16 @@
 services:
-  backend:
-    build: ./backend
-    environment:
-      SHEET_ID: ${SHEET_ID}
-      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      SHEET_RANGE: ${SHEET_RANGE:-Sheet1!D2:H520}
-      POLL_MINUTES: ${POLL_MINUTES:-60}
-    expose:
-      - "3000"
-    restart: unless-stopped
-
-  frontend:
-    build: ./frontend
+  indexator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: indexator
     ports:
-      - "8080:80"
-    depends_on:
-      - backend
+      - "3000:3000"
+    env_file:
+      - .env
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
