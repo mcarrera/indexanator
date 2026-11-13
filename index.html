@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>S&amp;P Snapshot — POC</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root { --pos-bg: #c8e6c9; --neg-bg: #ef9a9a; --header-bg: #4b5d4f; }
+  body { font-family: Arial, Helvetica, sans-serif; margin: 24px; background: #fafafa; color: #212121; }
+  h1 { font-size: 20px; margin: 0 0 4px 0; }
+  .sub { color: #777; font-size: 13px; margin-bottom: 16px; }
+  .toolbar { margin-bottom: 10px; }
+  .toolbar input { padding: 6px 10px; width: 220px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  th { background: var(--header-bg); color: #fff; padding: 8px 12px; text-align: right; cursor: pointer; user-select: none; font-size: 13px; white-space: nowrap; }
+  th:first-child { text-align: left; }
+  th:hover { background: #5d7161; }
+  td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; text-align: right; font-size: 14px; white-space: nowrap; }
+  td:first-child { text-align: left; font-weight: 600; }
+  tbody tr:nth-child(even) { background: #f5f5f5; }
+  td.change-cell { font-weight: 700; }
+  .pos { background: var(--pos-bg); }
+  .neg { background: var(--neg-bg); }
+  .footer-note { margin-top: 12px; font-size: 12px; color: #999; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+
+const fmtCap = n => {
+  if (n >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
+  if (n >= 1e9)  return "$" + (n / 1e9).toFixed(2) + "B";
+  if (n >= 1e6)  return "$" + (n / 1e6).toFixed(2) + "M";
+  return "$" + n.toLocaleString("en-US");
+};
+const fmtPrice = n => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
+const fmtPct = n => (n > 0 ? "+" : "") + n.toFixed(2) + "%";
+
+const COLUMNS = [
+  { key: "symbol",    label: "Symbol",      align: "left" },
+  { key: "marketCap", label: "Market Cap" },
+  { key: "price",     label: "Curr Price" },
+  { key: "changePct", label: "Daily Change" },
+];
+
+function App() {
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
+  const [filter, setFilter] = useState("");
+  const [sortKey, setSortKey] = useState("marketCap");
+  const [sortDir, setSortDir] = useState("desc");
+
+  useEffect(() => {
+    fetch("./data.json")
+      .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(setData)
+      .catch(e => setError(String(e)));
+  }, []);
+
+  const rows = useMemo(() => {
+    if (!data) return [];
+    const f = filter.trim().toUpperCase();
+    let out = f ? data.filter(r => r.symbol.toUpperCase().includes(f)) : [...data];
+    out.sort((a, b) => {
+      const va = a[sortKey], vb = b[sortKey];
+      const cmp = typeof va === "string" ? va.localeCompare(vb) : va - vb;
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return out;
+  }, [data, filter, sortKey, sortDir]);
+
+  const onSort = (key) => {
+    if (key === sortKey) { setSortDir(d => d === "asc" ? "desc" : "asc"); }
+    else { setSortKey(key); setSortDir(key === "symbol" ? "asc" : "desc"); }
+  };
+
+  const arrow = (key) => sortKey !== key ? "" : (sortDir === "asc" ? " \u2191" : " \u2193");
+
+  if (error) return <p style={{ color: "#b71c1c" }}>Failed to load data: {error}</p>;
+  if (!data) return <p>Loading…</p>;
+
+  return (
+    <div>
+      <h1>S&amp;P Snapshot</h1>
+      <div className="sub">Top constituents — quotes delayed, not for trading purposes.</div>
+
+      <div className="toolbar">
+        <input
+          placeholder="Filter by symbol…"
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+        />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            {COLUMNS.map(c => (
+              <th key={c.key} onClick={() => onSort(c.key)} style={{ textAlign: c.align || "right" }}>
+                {c.label}{arrow(c.key)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 && (
+            <tr><td colSpan={4}>No matches.</td></tr>
+          )}
+          {rows.map(r => {
+            const cls = r.changePct > 0 ? "pos" : r.changePct < 0 ? "neg" : "";
+            return (
+              <tr key={r.symbol}>
+                <td>{r.symbol}</td>
+                <td>{fmtCap(r.marketCap)}</td>
+                <td>{fmtPrice(r.price)}</td>
+                <td className={"change-cell " + cls}>{fmtPct(r.changePct)}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div className="footer-note">
+        Data: static POC file (will be replaced by live sheet poll). {rows.length} of {data.length} rows shown.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+/* ============================================================
+   Indexator — S&P Snapshot styles
+   Design system: no framework. Variables + one accent.
+   Light/dark: follows OS preference automatically.
+   ============================================================ */
+
+:root {
+    /* identity */
+    --accent: #2f6b46;
+    /* deep green — headers & focus */
+    --accent-hover: #3a7d54;
+
+    /* change colors */
+    --pos-fg: #14622e;
+    --pos-bg: #dff2e3;
+    --neg-fg: #a32323;
+    --neg-bg: #fbe2e2;
+
+    /* surfaces */
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --row-alt: #f1f3f5;
+    --row-hover: #eaf1ed;
+    --border: #e3e6ea;
+    --text: #1c232b;
+    --text-muted: #6b7684;
+    --text-faint: #9aa4b0;
+
+    --header-fg: #ffffff;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 4px 16px rgba(16, 24, 40, .06);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --accent: #3a8257;
+        --accent-hover: #47956a;
+        --pos-fg: #6fdc9a;
+        --pos-bg: #12281a;
+        --neg-fg: #f08c8c;
+        --neg-bg: #2c1516;
+        --bg: #10151b;
+        --card: #171d25;
+        --row-alt: #1c242e;
+        --row-hover: #1f2f27;
+        --border: #232c37;
+        --text: #e6ebf1;
+        --text-muted: #93a0ae;
+        --text-faint: #6b7684;
+        --header-fg: #f2f6f4;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+    }
+}
+
+@media (max-width: 640px) {
+    body {
+        padding: 16px 8px 32px;
+    }
+
+    table {
+        min-width: 0;
+    }
+
+    td,
+    th {
+        padding: 6px 8px;
+    }
+
+    th {
+        font-size: 11px;
+    }
+
+    td {
+        font-size: 13px;
+    }
+
+    .toolbar input {
+        width: 100%;
+    }
+
+    /* name column: single line + ellipsis, even on mobile */
+    td.name-cell {
+        max-width: 120px;
+        /* white-space: nowrap + overflow: hidden + text-overflow: ellipsis
+           are inherited from the desktop rule — no need to restate */
+    }
+}
+
+/* ---------- base ---------- */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 32px 24px 48px;
+    background: var(--bg);
+    color: var(--text);
+    /* system font stack — no webfont download, native look per OS */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* content column — wider than before, the table has 5 columns now */
+.wrap {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+/* ---------- page header ---------- */
+
+.page-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.sub {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* ---------- status badge ---------- */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 14px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.badge.stale {
+    background: #fff3e0;
+    border-color: #ffcc80;
+    color: #b35c00;
+}
+
+.badge.degraded {
+    background: var(--neg-bg);
+    border-color: color-mix(in srgb, var(--neg-fg) 35%, transparent);
+    color: var(--neg-fg);
+}
+
+/* ---------- toolbar ---------- */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.toolbar input {
+    padding: 8px 12px;
+    width: 260px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+
+.toolbar input::placeholder {
+    color: var(--text-faint);
+}
+
+.toolbar input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* ---------- table shell ---------- */
+
+.table-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: auto;
+    /* scrolls on narrow screens too */
+    max-height: calc(100vh - 220px);
+    /* keeps page height sane with 500 rows */
+}
+
+table {
+    border-collapse: separate;
+    /* required so rounded corners clip */
+    border-spacing: 0;
+    width: 100%;
+    min-width: 720px;
+}
+
+/* ---------- header ---------- */
+
+th {
+    position: sticky;
+    /* THE key UX upgrade: header stays visible */
+    top: 0;
+    z-index: 1;
+    background: var(--accent);
+    color: var(--header-fg);
+    padding: 10px 14px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 2px solid color-mix(in srgb, black 20%, var(--accent));
+    transition: background .12s;
+}
+
+th:first-child,
+th.name-col {
+    text-align: left;
+}
+
+th:hover {
+    background: var(--accent-hover);
+}
+
+/* ---------- cells ---------- */
+
+td {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    white-space: nowrap;
+    /* aligned digits across all numeric columns */
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+td:first-child,
+td.name-cell {
+    text-align: left;
+}
+
+td:first-child {
+    font-weight: 650;
+    letter-spacing: .02em;
+}
+
+td.name-cell {
+    color: var(--text-muted);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ---------- row striping & hover ---------- */
+
+tbody tr:nth-child(even) {
+    background: var(--row-alt);
+}
+
+tbody tr {
+    transition: background .1s;
+}
+
+tbody tr:hover {
+    background: var(--row-hover);
+}
+
+td.name-cell {
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 720px;
+    table-layout: fixed;
+    /* <- widths come from <col>, not content */
+}
+
+/* ---------- daily change pills ---------- */
+
+.change-cell {
+    font-weight: 700;
+}
+
+.change-cell.pos,
+.change-cell.neg {
+    display: block;
+    /* pill hugs its own cell width */
+    width: max-content;
+    margin-left: auto;
+    /* right-aligned pill */
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+}
+
+.change-cell.pos {
+    background: var(--pos-bg);
+    color: var(--pos-fg);
+}
+
+.change-cell.neg {
+    background: var(--neg-bg);
+    color: var(--neg-fg);
+}
+
+/* ---------- misc ---------- */
+
+.loading,
+.error-msg {
+    padding: 24px;
+    color: var(--text-muted);
+}
+
+.error-msg {
+    color: var(--neg-fg);
+}
+
+.footer-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-faint);
+}
