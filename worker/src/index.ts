@@ -48,7 +48,7 @@ async function pollSheet(env: Env): Promise<Snapshot> {
       marketCap: toNumber(marketCap),
       price: toNumber(price),
       // percent cells store fractions; contract = percentage points
-      changePct: cp === null ? null : cp * 100,
+      changePct: cp === null ? null : toNumber(cp)
     });
   }
   if (rows.length < MIN_ROWS) throw new Error(`Row guard: ${rows.length} rows`);
