@@ -70,7 +70,7 @@ function App() {
     if (error && !data) return <p style={{ color: "#b71c1c" }}>Failed to load data: {error}</p>;
     if (!data) return <p>Loading…</p>;
 
-    const asOfStr = asOf ? new Date(asOf).toISOString().slice(11, 19) + " UTC" : "";
+    const asOfStr = asOf ? new Date(asOf).toLocaleString("en-GB", { timeZone: "UTC", dateStyle: "medium", timeStyle: "medium", hour12: false }) + " UTC": "";
     const stale = asOf && (Date.now() - new Date(asOf).getTime() > 3 * 60 * 60 * 1000);
 
     return (

@@ -9,6 +9,7 @@ const SHEET_ID = process.env.SHEET_ID ?? "";
 const API_KEY = process.env.GOOGLE_API_KEY ?? "";
 const SHEET_RANGE = process.env.SHEET_RANGE ?? "Sheet1!D2:H520";
 const POLL_MS = Number(process.env.POLL_MINUTES ?? 60) * 60_000;
+const MARKET_TZ = "America/New_York"; // Eastern, DST-proof via Intl
 
 type Row = {
   symbol: string;
@@ -32,6 +33,21 @@ function toNumber(v: unknown): number | null {
     if (Number.isFinite(n)) return isPercent ? n / 100 : n;
   }
   return null;
+}
+
+
+
+/** True Mon–Fri, 9:00–17:00 Eastern (approximation — ignores US holidays). */
+function isMarketOpen(): boolean {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: MARKET_TZ,
+    weekday: "short",
+    hour: "numeric",
+    hour12: false,
+  }).formatToParts(new Date());
+  const wd = parts.find((p) => p.type === "weekday")?.value;
+  const hour = Number(parts.find((p) => p.type === "hour")?.value);
+  return wd !== "Sat" && wd !== "Sun" && hour >= 9 && hour < 17;
 }
 
 async function fetchSnapshot(): Promise<Snapshot> {
@@ -60,7 +76,12 @@ async function fetchSnapshot(): Promise<Snapshot> {
   return { asOf: new Date().toISOString(), rows };
 }
 
-async function poll(): Promise<void> {
+async function poll(force = false): Promise<void> {
+  if (!force && !isMarketOpen()) {
+    console.log("[poll] skipped — US market closed (last good data still served)");
+    setTimeout(poll, POLL_MS);
+    return;
+  }
   try {
     const snap = await fetchSnapshot();
     snapshot = snap;
@@ -70,7 +91,7 @@ async function poll(): Promise<void> {
     lastError = err instanceof Error ? err.message : String(err);
     console.error(`[poll] FAILED — ${lastError} (serving last good data if any)`);
   } finally {
-    setTimeout(poll, POLL_MS); // sequential scheduling: never overlaps
+    setTimeout(poll, POLL_MS); // regular ticks: market-gated again
   }
 }
 
@@ -101,4 +122,4 @@ app.get(/^\/(?!api\/).*/, (_req, res) => {
 app.listen(PORT, () => {
   console.log(`Backend on :${PORT} — polling "${SHEET_RANGE}" every ${POLL_MS / 60_000} min`);
 });
-poll(); // first poll immediately at boot
+poll(true); // first poll immediately at boot
