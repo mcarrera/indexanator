@@ -115,7 +115,7 @@ function App() {
                             const cls = r.changePct > 0 ? "pos" : r.changePct < 0 ? "neg" : "";
                             return (
                                 <tr key={r.symbol}>
-                                    <td>{r.symbol}</td>
+                                    <td><a href={"https://stockanalysis.com/stocks/" + r.symbol} target="_blank" rel="noopener noreferrer">{r.symbol}</a></td>
                                     <td className="name-cell">{fmtName(r.name)}</td>
                                     <td>{fmtCap(r.marketCap)}</td>
                                     <td>{fmtPrice(r.price)}</td>

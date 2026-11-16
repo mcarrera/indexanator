@@ -208,6 +208,8 @@ table {
     border-spacing: 0;
     width: 100%;
     min-width: 720px;
+    table-layout: fixed;
+    /* <- widths come from <col>, not content */
 }
 
 /* ---------- header ---------- */
@@ -265,10 +267,32 @@ td:first-child {
 
 td.name-cell {
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* ---------- symbol links ---------- */
+/* tied to --accent so they adapt to light/dark automatically */
+
+td:first-child a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+td:first-child a:hover {
+    color: var(--accent-hover);
+    border-bottom-style: solid;
+    border-bottom-color: var(--accent-hover);
+}
+
+td:first-child a:visited {
+    color: var(--accent);
+    /* same green regardless of visited state */
 }
 
 /* ---------- row striping & hover ---------- */
@@ -283,21 +307,6 @@ tbody tr {
 
 tbody tr:hover {
     background: var(--row-hover);
-}
-
-td.name-cell {
-    color: var(--text-muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: 100%;
-    min-width: 720px;
-    table-layout: fixed;
-    /* <- widths come from <col>, not content */
 }
 
 /* ---------- daily change pills ---------- */
