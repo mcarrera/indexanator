@@ -132,12 +132,20 @@ h1 {
 }
 
 /* ---------- status badge ---------- */
+.badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    /* deliberate space between pills */
+    margin: 10px 0 14px;
+    /* outer spacing moved here from .badge */
+}
 
 .badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 10px 0 14px;
     padding: 4px 12px;
     border-radius: 999px;
     font-size: 12px;
@@ -156,6 +164,21 @@ h1 {
 .badge.degraded {
     background: var(--neg-bg);
     border-color: color-mix(in srgb, var(--neg-fg) 35%, transparent);
+    color: var(--neg-fg);
+}
+
+/* S&P 500 index pill — reuses pos/neg semantic colors */
+.badge.spx {
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;  /* digits won't jiggle as the % changes */
+}
+.badge.spx.pos {
+    background: var(--pos-bg);
+    color: var(--pos-fg);
+}
+
+.badge.spx.neg {
+    background: var(--neg-bg);
     color: var(--neg-fg);
 }
 

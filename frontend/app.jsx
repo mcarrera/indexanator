@@ -17,6 +17,8 @@ const fmtPct = n => {
     return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
 };
 
+
+
 const COLUMNS = [
     { key: "symbol", label: "Symbol", align: "left", w: "10%" },
     { key: "name", label: "Name", align: "left", w: "38%" },
@@ -34,11 +36,19 @@ function App() {
     const [sortKey, setSortKey] = useState("marketCap");
     const [sortDir, setSortDir] = useState("desc");
     const [marketOpen, setMarketOpen] = useState(true);
+    const [spx, setSpx] = useState(null);
 
     const load = () => {
         fetch("/api/quotes")
             .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-            .then(j => { setData(j.rows); setAsOf(j.asOf); setDegraded(!!j.degraded); setMarketOpen(!!j.marketOpen); setError(null); })
+            .then(j => {
+                setData(j.rows);
+                setAsOf(j.asOf);
+                setDegraded(!!j.degraded);
+                setMarketOpen(!!j.marketOpen);
+                setSpx(j.spxChangePct ?? null);   // ← MERGED INTO ONE .then
+                setError(null);
+            })
             .catch(e => setError(String(e)));
     };
 
@@ -81,14 +91,19 @@ function App() {
                 <h1>Indexanator: S&amp;P500 Snapshot</h1>
                 <div className="sub">Quotes are delayed and might be inaccurate. This site is for general information only - nothing here is investment advice or a recommendation to buy or sell any security. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
             </div>
-
-            <div className={"badge " + (degraded || stale ? "degraded" : "")}>
-                {degraded && "Upstream issue, showing last good data. "}
-                {stale && "Data appears stale. "}
-                {!marketOpen && !degraded && "US market closed. "}
-                {asOfStr && `Data last read at ${asOfStr}`}
+            <div className="badges">
+                <div className={"badge " + (degraded || stale ? "degraded" : "")}>
+                    {degraded && "Upstream issue, showing last good data. "}
+                    {stale && "Data appears stale. "}
+                    {!marketOpen && !degraded && "US market closed. "}
+                    {asOfStr && `Data last read at ${asOfStr}`}
+                </div>
+                {spx != null && (
+                    <span className={"badge spx " + (spx >= 0 ? "pos" : "neg")}>
+                      S&P 500 {spx >= 0 ? "▲" : "▼"} {fmtPct(spx)}
+                    </span>
+                )}
             </div>
-
             <div className="toolbar">
                 <input placeholder="Filter by symbol or name…" value={filter}
                     onChange={e => setFilter(e.target.value)} />

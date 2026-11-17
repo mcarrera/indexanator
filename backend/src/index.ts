@@ -8,6 +8,7 @@ const PORT = Number(process.env.PORT ?? 3000);
 const SHEET_ID = process.env.SHEET_ID ?? "";
 const API_KEY = process.env.GOOGLE_API_KEY ?? "";
 const SHEET_RANGE = process.env.SHEET_RANGE ?? "Sheet1!D2:H520";
+const SPX_RANGE = process.env.SPX_RANGE ?? "Sheet1!K1"; // cell holding S&P 500 daily change
 const POLL_MS = Number(process.env.POLL_MINUTES ?? 60) * 60_000;
 const MARKET_TZ = "America/New_York"; // Eastern, DST-proof via Intl
 
@@ -18,7 +19,7 @@ type Row = {
   price: number | null;
   changePct: number | null;
 };
-type Snapshot = { asOf: string; rows: Row[] };
+type Snapshot = { asOf: string; rows: Row[]; spxChangePct: number | null };
 
 let snapshot: Snapshot | null = null;
 let lastError: string | null = null;
@@ -35,8 +36,6 @@ function toNumber(v: unknown): number | null {
   return null;
 }
 
-
-
 /** True Mon–Fri, 9:00–17:00 Eastern (approximation — ignores US holidays). */
 function isMarketOpen(): boolean {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -50,13 +49,30 @@ function isMarketOpen(): boolean {
   return wd !== "Sat" && wd !== "Sun" && hour >= 9 && hour < 17;
 }
 
-async function fetchSnapshot(): Promise<Snapshot> {
-  const url =
+function sheetsUrl(range: string): string {
+  return (
     `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/` +
-    `${encodeURIComponent(SHEET_RANGE)}?key=${API_KEY}` +
-    `&valueRenderOption=UNFORMATTED_VALUE`;
+    `${encodeURIComponent(range)}?key=${API_KEY}&valueRenderOption=UNFORMATTED_VALUE`
+  );
+}
 
-  const res = await fetch(url);
+/** Fetches the S&P 500 daily change from a single cell. Failure is non-fatal — pill just hides. */
+async function fetchSpxChange(): Promise<number | null> {
+  try {
+    const res = await fetch(sheetsUrl(SPX_RANGE));
+    if (!res.ok) return null;
+    const j = (await res.json()) as { values?: unknown[][] };
+    return toNumber(j.values?.[0]?.[0]);
+  } catch {
+    return null; // network error, etc
+  }
+}
+
+async function fetchSnapshot(): Promise<Snapshot> {
+  const [res, spxChangePct] = await Promise.all([
+    fetch(sheetsUrl(SHEET_RANGE)),
+    fetchSpxChange(),
+  ]);
   if (!res.ok) throw new Error(`Sheets API ${res.status}: ${(await res.text()).slice(0, 300)}`);
 
   const data = (await res.json()) as { values?: unknown[][] };
@@ -73,7 +89,7 @@ async function fetchSnapshot(): Promise<Snapshot> {
     });
   }
   if (rows.length < 400) throw new Error(`Suspiciously few rows (${rows.length}) — refusing to serve`);
-  return { asOf: new Date().toISOString(), rows };
+  return { asOf: new Date().toISOString(), rows, spxChangePct };
 }
 
 async function poll(force = false): Promise<void> {
@@ -86,7 +102,7 @@ async function poll(force = false): Promise<void> {
     const snap = await fetchSnapshot();
     snapshot = snap;
     lastError = null;
-    console.log(`[poll] OK — ${snap.rows.length} rows @ ${snap.asOf}`);
+    console.log(`[poll] OK — ${snap.rows.length} rows @ ${snap.asOf} (SPX ${snap.spxChangePct ?? "n/a"})`);
   } catch (err) {
     lastError = err instanceof Error ? err.message : String(err);
     console.error(`[poll] FAILED — ${lastError} (serving last good data if any)`);
@@ -109,7 +125,7 @@ app.get("/healthz", (_req, res) => {
   res.json({ hasData: snapshot !== null, rows: snapshot?.rows.length ?? 0, lastError });
 });
 
-// --- static frontend 
+// --- static frontend
 const FRONTEND_DIR = path.join(__dirname, "..", "public");
 
 app.use(express.static(FRONTEND_DIR));
@@ -117,7 +133,7 @@ app.use(express.static(FRONTEND_DIR));
 app.get(/^\/(?!api\/).*/, (_req, res) => {
   res.sendFile(path.join(FRONTEND_DIR, "index.html"));
 });
-// --- end static frontend 
+// --- end static frontend
 
 app.listen(PORT, () => {
   console.log(`Backend on :${PORT} — polling "${SHEET_RANGE}" every ${POLL_MS / 60_000} min`);
