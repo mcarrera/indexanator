@@ -114,7 +114,7 @@ function App() {
         <div className="wrap">
             <div className="page-head">
                 <h1>Indexanator: Market Snapshots</h1>
-                <div className="intro">Use the tabs below to switch between indexes — each tab shows that index's constituents with price, market cap and daily change. Quotes are delayed and might be inaccurate. This site is for general information only - nothing here is investment advice or a recommendation to buy or sell any security. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
+                <div className="intro">Use the tabs below to switch between indexes. Each tab shows that index's constituents with price, market cap and daily change. Quotes are delayed and might be inaccurate. This site is for general information and educational purposes only and nothing here is investment advice or a recommendation to buy or sell any security. Index names and trademarks (e.g. "S&P 500®", "NASDAQ-100®") belong to their respective owners; this is an independent, non-commercial project with no affiliation or endorsement. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
             </div>
 
             <div className="tabs" role="tablist">
