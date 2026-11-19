@@ -28,7 +28,7 @@ const COLUMNS = [
 ];
 
 function App() {
-    const [tabs, setTabs] = useState([]);        // [{id,label,ready,lastError}]
+    const [tabs, setTabs] = useState([]);        // [{id,label,description,ready,lastError}]
     const [activeId, setActiveId] = useState(null);
     const [data, setData] = useState(null);       // rows of the active index
     const [meta, setMeta] = useState(null);       // {id,label,asOf,degraded,marketOpen,indexChangePct}
@@ -113,8 +113,8 @@ function App() {
     return (
         <div className="wrap">
             <div className="page-head">
-                <h1>Indexanator: Market Snapshot</h1>
-                <div className="sub">Quotes are delayed and might be inaccurate. This site is for general information only - nothing here is investment advice or a recommendation to buy or sell any security. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
+                <h1>Indexanator: Market Snapshots</h1>
+                <div className="intro">Use the tabs below to switch between indexes — each tab shows that index's constituents with price, market cap and daily change. Quotes are delayed and might be inaccurate. This site is for general information only - nothing here is investment advice or a recommendation to buy or sell any security. Use of this site is entirely at your own risk; the operator is not liable for any losses arising from reliance on its content.</div>
             </div>
 
             <div className="tabs" role="tablist">
@@ -130,6 +130,9 @@ function App() {
                 ))}
             </div>
 
+            {activeTab && activeTab.description ? (
+                <div className="tab-description">{activeTab.description}</div>
+            ) : null}
             {activeTab && !activeTab.ready ? (
                 <p className="error-msg">No data yet for {activeTab.label} — the backend hasn't completed a successful poll for this index. {activeTab.lastError ? "Last error: " + activeTab.lastError : ""}</p>
             ) : (

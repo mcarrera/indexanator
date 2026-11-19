@@ -20,6 +20,7 @@ const MARKET_TZ = "America/New_York"; // Eastern, DST-proof via Intl
 //   range   – data range "TabName!D2:H520"
 //   idxRange– single cell holding the index's daily change ("TabName!K1")
 //   minRows – sanity threshold; refuses to serve fewer rows than this
+//   description – short per-tab blurb shown under the tab bar
 //
 // Backwards compatible: if INDEXES is unset, a single S&P 500 entry is built
 // from the legacy SHEET_RANGE / SPX_RANGE env vars.
@@ -31,6 +32,7 @@ type IndexConfig = {
   range: string;
   idxRange: string | null;
   minRows: number;
+  description: string;
 };
 
 const DEFAULT_INDEXES: IndexConfig[] = [
@@ -41,6 +43,7 @@ const DEFAULT_INDEXES: IndexConfig[] = [
     range: process.env.SHEET_RANGE ?? "Sheet1!D2:H520",
     idxRange: process.env.SPX_RANGE ?? "Sheet1!K1",
     minRows: Number(process.env.MIN_ROWS ?? 400),
+    description: "The S&P 500 — the 500 largest US-listed companies.",
   },
 ];
 
@@ -57,6 +60,7 @@ function parseIndexes(raw: string | undefined): IndexConfig[] {
         range: c.range!,
         idxRange: c.idxRange ?? null,
         minRows: Number(c.minRows ?? 1),
+        description: typeof c.description === "string" ? c.description : "",
       }));
     if (list.length === 0) throw new Error("empty");
     return list;
@@ -195,6 +199,7 @@ app.get("/api/indexes", (_req, res) => {
     Array.from(states.values()).map(({ config, lastError, lastOkAt }) => ({
       id: config.id,
       label: config.label,
+      description: config.description,
       ready: lastOkAt !== null,
       lastError: lastError ?? null,
     }))

@@ -131,6 +131,21 @@ h1 {
     font-size: 13px;
 }
 
+/* intro paragraph: how-to + disclaimer under the h1 */
+.intro {
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-basis: 100%;
+}
+
+/* per-tab description, right under the tab bar */
+.tab-description {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin: 4px 2px 12px;
+    font-style: italic;
+}
+
 /* ---------- status badge ---------- */
 .badges {
     display: flex;
