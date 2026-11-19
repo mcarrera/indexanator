@@ -131,6 +131,21 @@ h1 {
     font-size: 13px;
 }
 
+/* intro paragraph: how-to + disclaimer under the h1 */
+.intro {
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-basis: 100%;
+}
+
+/* per-tab description, right under the tab bar */
+.tab-description {
+    color: var(--text-muted);
+    font-size: 12px;
+    margin: 4px 2px 12px;
+    font-style: italic;
+}
+
 /* ---------- status badge ---------- */
 .badges {
     display: flex;
@@ -376,4 +391,69 @@ tbody tr:hover {
     margin-top: 14px;
     font-size: 12px;
     color: var(--text-faint);
+}
+
+/* ---------- tab bar ---------- */
+
+.tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    margin: 14px 0 10px;
+    border-bottom: 2px solid var(--border);
+}
+
+.tab {
+    appearance: none;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    background: var(--card);
+    color: var(--text-muted);
+    font: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 18px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+    position: relative;
+    top: 2px;
+}
+
+.tab:hover {
+    background: var(--row-hover);
+    color: var(--text);
+}
+
+.tab.active {
+    background: var(--accent);
+    color: var(--header-fg);
+    border-color: var(--accent);
+    cursor: default;
+}
+
+.tab.not-ready {
+    color: var(--text-faint);
+    font-style: italic;
+}
+
+.tab.not-ready.active {
+    opacity: .85;
+}
+
+.tab-wait {
+    margin-left: 6px;
+    font-weight: 400;
+    font-size: 11px;
+}
+
+@media (max-width: 640px) {
+    .tabs {
+        gap: 2px;
+    }
+
+    .tab {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
 }
